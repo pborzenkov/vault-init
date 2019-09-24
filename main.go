@@ -109,6 +109,8 @@ func main() {
 		log.Fatal("KMS_KEY_ID must be set and not empty")
 	}
 
+	verbose := os.Getenv("VERBOSE") != ""
+
 	kmsCtx, kmsCtxCancel := context.WithCancel(context.Background())
 	defer kmsCtxCancel()
 	kmsClient, err := google.DefaultClient(kmsCtx, "https://www.googleapis.com/auth/cloudkms")
@@ -176,9 +178,13 @@ func main() {
 
 		switch response.StatusCode {
 		case 200:
-			log.Println("Vault is initialized and unsealed.")
+			if verbose {
+				log.Println("Vault is initialized and unsealed.")
+			}
 		case 429:
-			log.Println("Vault is unsealed and in standby mode.")
+			if verbose {
+				log.Println("Vault is unsealed and in standby mode.")
+			}
 		case 501:
 			log.Println("Vault is not initialized.")
 			log.Println("Initializing...")
@@ -202,7 +208,9 @@ func main() {
 			stop()
 		}
 
-		log.Printf("Next check in %s", checkInterval)
+		if verbose {
+			log.Printf("Next check in %s", checkInterval)
+		}
 
 		select {
 		case <-signalCh:
